@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER Gallery - Mobile Focus</title>
+    <style>
+        /* --- 기본 설정 --- */
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
+        body::-webkit-scrollbar { display: none; }
+
+        /* --- [수정] 메인화면: 한 화면에 6장(2열 3행) 정사각 구성 --- */
+        .gallery {
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* 2열 */
+            gap: 4px; /* 인스타그램 스타일의 좁은 간격 */
+            padding: 4px;
+            max-width: 500px; 
+            margin: 0 auto; 
+        }
+
+        .thumb-container {
+            aspect-ratio: 1 / 1; /* [중요] 1:1 정사각 비율 */
+            overflow: hidden;
+            background: #222;
+            cursor: pointer;
+        }
+
+        .thumb-container img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* 정사각 영역에 꽉 차게 */
+        }
+
+        /* --- 하단 버튼 (모바일 기준 크기 조정) --- */
+        .bottom-buttons {
+            display: flex; justify-content: space-around; padding: 30px 0;
+            background: transparent; align-items: center;
+        }
+
+        .bottom-buttons button {
+            background: transparent; border: none; color: white;
+            font-size: 1.2rem; font-weight: bold; cursor: pointer;
+        }
+
+        .bottom-buttons button:disabled { color: #444; }
+
+        /* --- 2. 하위 페이지 (풀스크린 팝업) --- */
+        #popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 1000; display: none;
+        }
+
+        /* [수정] 나가기 버튼 & 날짜 위치 최적화 */
+        .popup-header {
+            position: absolute; 
+            top: env(safe-area-inset-top, 20px); /* 노치 디자인 대응 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%; 
+            max-width: calc(100vh * 9 / 16); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; /* 수직 중앙 정렬 */
+            padding: 10px 20px; 
+            box-sizing: border-box;
+            z-index: 1002;
+            pointer-events: none;
+        }
+
+        #close-btn { 
+            font-size: 2.2rem; 
+            cursor: pointer; 
+            color: #fff; 
+            pointer-events: auto;
+            text-shadow: 0 0 8px rgba(0,0,0,0.8);
+            line-height: 1;
+        }
+        
+        #upload-date { 
+            font-size: 1.1rem; 
+            color: #fff; 
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        /* --- 팝업 슬라이더 --- */
+        .popup-slider {
+            display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+            height: 100%; width: 100%; z-index: 1001;
+        }
+        .popup-slider::-webkit-scrollbar { display: none; }
+
+        .slide-item {
+            min-width: 100%; height: 100%; scroll-snap-align: start;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .slide-item img { 
+            max-width: 100%; 
+            max-height: 100vh; 
+            object-fit: contain; 
+        }
+
+        /* --- [추가] 모바일 한 화면 6장 구성을 위한 높이 계산 --- */
+        @media (max-width: 480px) {
+            .thumb-container {
+                /* 화면 높이에서 버튼 영역을 제외하고 3등분한 높이 근사치 */
+                height: calc((100vh - 150px) / 3); 
+                aspect-ratio: auto; /* 높이 고정을 위해 비율 해제 */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-page">
+        <div class="gallery" id="gallery-grid"></div>
+        <div class="bottom-buttons">
+            <button id="prev-btn" onclick="changePage(-1)">이전</button>
+            <button onclick="window.scrollTo({top:0, behavior:'smooth'})">맨위로</button>
+            <button id="next-btn" onclick="changePage(1)">다음</button>
+        </div>
+    </div>
+
+    <div id="popup">
+        <div class="popup-header">
+            <span id="close-btn">✕</span>
+            <span id="upload-date">2026.03.17</span>
+        </div>
+        <div class="popup-slider" id="slider"></div>
+    </div>
+
+    <script>
+        let allImages = []; 
+        let currentPage = 1;
+        const itemsPerPage = 30; // 6의 배수로 설정하여 페이지가 깔끔하게 떨어지게 함
+
+        fetch('./data.json')
+            .then(res => res.json())
+            .then(data => {
+                allImages = data;
+                renderGallery();
+            });
+
+        function renderGallery() {
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = ''; 
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentItems = allImages.slice(start, end);
+
+            currentItems.forEach((imgSrc, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'thumb-container';
+                thumb.innerHTML = `<img src="data/${imgSrc}" loading="lazy">`;
+                thumb.onclick = () => openPopup(index, currentItems);
+                grid.appendChild(thumb);
+            });
+
+            document.getElementById('prev-btn').disabled = (currentPage === 1);
+            document.getElementById('next-btn').disabled = (end >= allImages.length);
+            window.scrollTo(0, 0);
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderGallery();
+        }
+
+        function openPopup(index, data) {
+            const popup = document.getElementById('popup');
+            const slider = document.getElementById('slider');
+            slider.innerHTML = data.map(img => `<div class="slide-item"><img src="data/${img}"></div>`).join('');
+            popup.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            const targetSlide = slider.children[index];
+            slider.scrollLeft = targetSlide.offsetLeft;
+        }
+
+        document.getElementById('close-btn').onclick = () => {
+            document.getElementById('popup').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        window.addEventListener('keydown', (e) => {
+            const slider = document.getElementById('slider');
+            if (e.key === 'ArrowRight') slider.scrollBy({left: window.innerWidth, behavior: 'smooth'});
+            if (e.key === 'ArrowLeft') slider.scrollBy({left: -window.innerWidth, behavior: 'smooth'});
+            if (e.key === 'Escape') document.getElementById('close-btn').click();
+        });
+    </script>
+</body>
+</html>
