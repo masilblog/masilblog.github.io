@@ -2,17 +2,27 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ER Gallery - Pro Version</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SENOYA'S M-WEB</title>
     <style>
-        /* --- 기본 설정 --- */
+        /* --- 기본 테마 --- */
         body { 
-            margin: 0; background: #000; color: #fff; font-family: sans-serif; 
+            margin: 0; background: #000; color: #fff; font-family: -apple-system, sans-serif; 
             overflow-x: hidden; -webkit-user-select: none; user-select: none;
         }
         html { scroll-behavior: smooth; }
 
-        /* --- 1. 메인화면: 정사각 6장 구성 --- */
+        /* --- [추가] 상단 고정 헤더 --- */
+        .site-header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+            z-index: 2000; font-weight: 900; font-size: 1.2rem; letter-spacing: 1px;
+            color: #fff; pointer-events: none; /* 클릭 방해 금지 */
+        }
+
+        /* --- 메인 갤러리 레이아웃 --- */
+        #main-page { padding-top: 70px; } /* 헤더 공간 확보 */
         .gallery {
             display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 2px; padding: 2px; max-width: 500px; margin: 0 auto;
@@ -20,35 +30,42 @@
         .thumb-container { aspect-ratio: 1 / 1; overflow: hidden; background: #111; cursor: pointer; }
         .thumb-container img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 하단 버튼 */
-        .bottom-buttons { display: flex; justify-content: space-around; padding: 40px 0; align-items: center; }
-        .bottom-buttons button { background: transparent; border: none; color: white; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        /* --- [수정] 하단 바 스타일 --- */
+        .bottom-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; max-width: 500px; margin: 0 auto;
+        }
+        .bottom-bar button {
+            background: transparent; border: none; color: white;
+            font-size: 1rem; font-weight: bold; cursor: pointer; flex: 1;
+        }
+        .bottom-bar button:nth-child(1) { text-align: left; }  /* 이전 */
+        .bottom-bar button:nth-child(2) { text-align: center; } /* HOME */
+        .bottom-bar button:nth-child(3) { text-align: right; } /* 다음 */
+        .bottom-bar button:disabled { opacity: 0.3; }
 
-        /* --- 2. 하위 페이지 (풀스크린 팝업) --- */
+        /* --- 팝업 전용 스타일 --- */
         #popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 1000; display: none;
+            background: #000; z-index: 1500; display: none;
         }
 
-        /* [수정] 헤더가 항상 사진 폭 안에서 중앙 정렬되도록 */
-        .popup-header {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: calc(100vh * 9 / 16); /* 사진의 가로폭에 맞춤 */
-            display: flex; justify-content: space-between; align-items: center;
-            padding: env(safe-area-inset-top, 30px) 20px 20px;
-            box-sizing: border-box; z-index: 1005;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-            pointer-events: none;
+        /* [수정] 팝업 하단바 (고정형) */
+        #popup .bottom-bar {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; /* PC에서도 사진 폭 안으로 제한 */
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            z-index: 2100;
         }
-        #close-btn { font-size: 2.5rem; color: #fff; pointer-events: auto; cursor: pointer; }
-        #upload-date { font-size: 1.2rem; font-weight: bold; }
 
-        /* 슬라이더 설정 */
+        /* 슬라이더 (PC 마우스 드래그 지원용 가로 스크롤) */
         .popup-slider {
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-            height: 100%; width: 100%; z-index: 1001;
-            -webkit-overflow-scrolling: touch;
+            height: 100%; width: 100%; z-index: 1501;
+            -webkit-overflow-scrolling: touch; cursor: grab;
         }
+        .popup-slider:active { cursor: grabbing; }
         .popup-slider::-webkit-scrollbar { display: none; }
 
         .slide-item {
@@ -56,39 +73,37 @@
             scroll-snap-stop: always; display: flex; align-items: center; justify-content: center;
         }
 
-        /* [수정] 팝업 사진: 모바일은 꽉 차게, PC는 9:16 비율 유지 */
         .slide-item img { 
-            width: 100%; height: 100%; 
-            object-fit: cover; /* 기본은 화면 꽉 채우기 */
-            pointer-events: none;
+            width: 100%; height: 100%; object-fit: cover; pointer-events: none;
         }
 
-        /* [추가] PC 환경(가로가 긴 화면)에서 사진 비율 고정 */
+        /* PC 화면 비율 보정 */
         @media (min-aspect-ratio: 9/16) {
-            .slide-item img {
-                width: auto;
-                aspect-ratio: 9 / 16; /* 가로가 넓어지면 9:16 유지 */
-            }
+            .slide-item img { width: auto; aspect-ratio: 9 / 16; }
+            #popup .bottom-bar { max-width: calc(100vh * 9 / 16); } /* 사진 가로폭에 맞춤 */
         }
     </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
+    <div class="site-header">SENOYA'S M-WEB</div>
+
     <div id="main-page">
         <div class="gallery" id="gallery-grid"></div>
-        <div class="bottom-buttons">
-            <button id="prev-btn" onclick="changePage(-1)">이전</button>
-            <button onclick="window.scrollTo({top:0, behavior:'smooth'})">맨위로</button>
-            <button id="next-btn" onclick="changePage(1)">다음</button>
+        <div class="bottom-bar">
+            <button class="nav-prev" onclick="changePage(-1)">이전</button>
+            <button onclick="window.scrollTo({top:0, behavior:'smooth'})">HOME</button>
+            <button class="nav-next" onclick="changePage(1)">다음</button>
         </div>
     </div>
 
     <div id="popup">
-        <div class="popup-header">
-            <span id="close-btn">✕</span>
-            <span id="upload-date">2026.03.17</span>
-        </div>
         <div class="popup-slider" id="slider"></div>
+        <div class="bottom-bar">
+            <button onclick="moveSlider(-1)">이전</button>
+            <button onclick="closePopup()">HOME</button>
+            <button onclick="moveSlider(1)">다음</button>
+        </div>
     </div>
 
     <script>
@@ -96,26 +111,31 @@
         let currentPage = 1;
         const itemsPerPage = 30;
 
+        // 1. 데이터 로드
         fetch('./data.json').then(res => res.json()).then(data => {
             allImages = data;
             renderGallery();
         });
 
+        // 2. 메인 갤러리 생성
         function renderGallery() {
             const grid = document.getElementById('gallery-grid');
             grid.innerHTML = ''; 
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const currentItems = allImages.slice(start, end);
+
             currentItems.forEach((imgSrc, index) => {
                 const thumb = document.createElement('div');
                 thumb.className = 'thumb-container';
-                thumb.innerHTML = `<img src="data/${imgSrc}" loading="lazy">`;
+                thumb.innerHTML = `<img src="data/${imgSrc}" loading="lazy" decoding="async">`;
                 thumb.onclick = () => openPopup(index, currentItems);
                 grid.appendChild(thumb);
             });
-            document.getElementById('prev-btn').disabled = (currentPage === 1);
-            document.getElementById('next-btn').disabled = (end >= allImages.length);
+
+            // 메인 버튼 활성화/비활성화
+            document.querySelectorAll('.nav-prev').forEach(b => b.disabled = (currentPage === 1));
+            document.querySelectorAll('.nav-next').forEach(b => b.disabled = (end >= allImages.length));
         }
 
         function changePage(direction) {
@@ -124,26 +144,53 @@
             window.scrollTo({top:0, behavior:'smooth'});
         }
 
+        // 3. 팝업 열기/닫기
         function openPopup(index, data) {
             const popup = document.getElementById('popup');
             const slider = document.getElementById('slider');
             slider.innerHTML = data.map(img => `<div class="slide-item"><img src="data/${img}"></div>`).join('');
             popup.style.display = 'block';
             document.body.style.overflow = 'hidden';
+            
             const targetSlide = slider.children[index];
             slider.scrollTo({ left: targetSlide.offsetLeft, behavior: 'auto' });
         }
 
-        document.getElementById('close-btn').onclick = () => {
+        function closePopup() {
             document.getElementById('popup').style.display = 'none';
             document.body.style.overflow = 'auto';
-        };
+        }
+
+        function moveSlider(direction) {
+            const slider = document.getElementById('slider');
+            slider.scrollBy({ left: window.innerWidth * direction, behavior: 'smooth' });
+        }
+
+        // 4. PC 마우스 드래그 스크롤 기능 추가
+        const slider = document.getElementById('slider');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+        slider.addEventListener('mouseleave', () => isDown = false);
+        slider.addEventListener('mouseup', () => isDown = false);
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2; // 스크롤 속도 조절
+            slider.scrollLeft = scrollLeft - walk;
+        });
 
         window.addEventListener('keydown', (e) => {
-            const slider = document.getElementById('slider');
-            if (e.key === 'ArrowRight') slider.scrollBy({left: window.innerWidth, behavior: 'smooth'});
-            if (e.key === 'ArrowLeft') slider.scrollBy({left: -window.innerWidth, behavior: 'smooth'});
-            if (e.key === 'Escape') document.getElementById('close-btn').click();
+            if (e.key === 'ArrowRight') moveSlider(1);
+            if (e.key === 'ArrowLeft') moveSlider(-1);
+            if (e.key === 'Escape') closePopup();
         });
     </script>
 </body>
