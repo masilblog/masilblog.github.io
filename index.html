@@ -29,21 +29,23 @@
         .thumb-container { aspect-ratio: 1 / 1; overflow: hidden; background: #111; cursor: pointer; }
         .thumb-container img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 공통 하단 바 스타일 */
+        /* 하단 바 공통 스타일 */
         .bottom-bar {
-            display: flex; /* 가로 정렬 */
-            justify-content: space-between; 
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             max-width: 500px; margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
+            width: 100%; box-sizing: border-box;
+            /* 글자가 잘 보이도록 위아래 부드러운 그라데이션 추가 */
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(0,0,0,0.6) 50%, 
+                transparent 100%);
         }
 
         .bottom-bar button {
             background: transparent; border: none; color: white;
             font-weight: bold; cursor: pointer; flex: 1;
             display: flex; align-items: center;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+            text-shadow: 0 0 8px rgba(0,0,0,1); /* 글자 그림자 강화 */
         }
         
         .nav-prev, .nav-next { font-size: 1.1rem !important; }
@@ -52,10 +54,13 @@
         .bottom-bar button:nth-child(1) { justify-content: flex-start; }
         .bottom-bar button:nth-child(2) { justify-content: center; }
         .bottom-bar button:nth-child(3) { justify-content: flex-end; }
-        .bottom-bar button:disabled { opacity: 0.1; }
+        .bottom-bar button:disabled { opacity: 0.15; } /* 비활성화 시에도 살짝 보이게 조정 */
 
-        /* 메인 페이지 하단 여백 */
-        #main-page .bottom-bar { padding: 20px 30px 40px 30px; }
+        /* 메인 페이지 하단 바 위치 */
+        #main-page .bottom-bar { 
+            padding: 30px 30px 50px 30px; 
+            margin-top: 20px;
+        }
 
         /* 팝업 페이지 */
         #popup {
@@ -63,14 +68,12 @@
             background: #000; z-index: 1500; display: none;
         }
 
-        /* 팝업 하단 바: 배경 블러 원래대로 + 위치 상향 */
+        /* 팝업 하단 바 위치 */
         #popup .bottom-bar {
             position: fixed; 
-            bottom: 60px; /* 바닥에서 띄움 (원하시는 위치) */
+            bottom: 40px; 
             left: 50%; transform: translateX(-50%);
-            /* 원래 스타일: 화면 전체 너비에 걸친 그라데이션 블러 */
-            background: linear-gradient(to top, rgba(0,0,0,0.7) 30%, transparent);
-            padding: 20px 30px 20px 30px; 
+            padding: 30px 30px; 
             z-index: 2100;
         }
 
