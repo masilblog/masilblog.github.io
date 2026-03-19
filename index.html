@@ -29,44 +29,46 @@
         .thumb-container { aspect-ratio: 1 / 1; overflow: hidden; background: #111; cursor: pointer; }
         .thumb-container img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 하단 바: 높이를 약 2mm 더 올리고 좌우 여백 추가 */
-        .bottom-bar {
+        /* 메인 페이지 하단 바 (기존 위치 유지) */
+        #main-page .bottom-bar {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 30px 60px 30px; /* 좌우 여백 30px로 화살표 위치 조정, 하단 패딩 60px로 버튼 상향 */
+            padding: 20px 30px 40px 30px; 
             max-width: 500px; margin: 0 auto;
         }
+
         .bottom-bar button {
             background: transparent; border: none; color: white;
             font-weight: bold; cursor: pointer; flex: 1;
-            transition: opacity 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* 화살표: 사이즈 30% 축소 및 HOME 글자와 정렬 */
-        .nav-prev, .nav-next { 
-            font-size: 1.1rem !important; /* 기존 1.5rem에서 약 30% 축소 */
+            display: flex; align-items: center;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8); /* 글자 가독성 확보 */
         }
         
-        /* HOME 버튼 글자 사이즈 */
+        .nav-prev, .nav-next { font-size: 1.1rem !important; }
         .btn-home { font-size: 1rem !important; }
         
-        .bottom-bar button:nth-child(1) { justify-content: flex-start; } /* 왼쪽 정렬 */
-        .bottom-bar button:nth-child(2) { justify-content: center; }    /* 가운데 정렬 */
-        .bottom-bar button:nth-child(3) { justify-content: flex-end; }   /* 오른쪽 정렬 */
-        
-        .bottom-bar button:disabled { opacity: 0.1; cursor: default; }
+        .bottom-bar button:nth-child(1) { justify-content: flex-start; }
+        .bottom-bar button:nth-child(2) { justify-content: center; }
+        .bottom-bar button:nth-child(3) { justify-content: flex-end; }
+        .bottom-bar button:disabled { opacity: 0.1; }
 
+        /* 팝업 페이지 설정 */
         #popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 1500; display: none;
         }
 
+        /* 팝업 하단 바: 위치를 더 올리고 배경색 추가하여 가독성 확보 */
         #popup .bottom-bar {
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px;
-            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
-            padding-bottom: env(safe-area-inset-bottom, 60px);
+            position: fixed; 
+            bottom: 40px; /* 바닥에서 띄움 (요청하신 상향 조정) */
+            left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(0, 0, 0, 0.6); /* 반투명 검정 배경 */
+            backdrop-filter: blur(10px); /* 뒤쪽 이미지 블러 처리 */
+            padding: 15px 25px;
+            border-radius: 30px; /* 둥근 막대 형태 디자인 */
             z-index: 2100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         .popup-slider {
@@ -85,7 +87,7 @@
 
         @media (min-aspect-ratio: 9/16) {
             .slide-item img { width: auto; aspect-ratio: 9 / 16; }
-            #popup .bottom-bar { max-width: calc(100vh * 9 / 16); }
+            #popup .bottom-bar { max-width: calc(100vh * 9 / 16 - 40px); }
         }
     </style>
 </head>
@@ -136,8 +138,8 @@
                 grid.appendChild(thumb);
             });
 
-            document.querySelectorAll('.nav-prev').forEach(b => b.disabled = (currentPage === 1));
-            document.querySelectorAll('.nav-next').forEach(b => b.disabled = (end >= allImages.length));
+            document.querySelectorAll('#main-page .nav-prev').forEach(b => b.disabled = (currentPage === 1));
+            document.querySelectorAll('#main-page .nav-next').forEach(b => b.disabled = (end >= allImages.length));
         }
 
         function changePage(direction) {
