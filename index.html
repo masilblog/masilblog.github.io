@@ -29,18 +29,21 @@
         .thumb-container { aspect-ratio: 1 / 1; overflow: hidden; background: #111; cursor: pointer; }
         .thumb-container img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-        /* 메인 페이지 하단 바 (기존 위치 유지) */
-        #main-page .bottom-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 30px 40px 30px; 
+        /* 공통 하단 바 스타일 */
+        .bottom-bar {
+            display: flex; /* 가로 정렬 */
+            justify-content: space-between; 
+            align-items: center;
             max-width: 500px; margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .bottom-bar button {
             background: transparent; border: none; color: white;
             font-weight: bold; cursor: pointer; flex: 1;
             display: flex; align-items: center;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8); /* 글자 가독성 확보 */
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
         
         .nav-prev, .nav-next { font-size: 1.1rem !important; }
@@ -51,24 +54,24 @@
         .bottom-bar button:nth-child(3) { justify-content: flex-end; }
         .bottom-bar button:disabled { opacity: 0.1; }
 
-        /* 팝업 페이지 설정 */
+        /* 메인 페이지 하단 여백 */
+        #main-page .bottom-bar { padding: 20px 30px 40px 30px; }
+
+        /* 팝업 페이지 */
         #popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 1500; display: none;
         }
 
-        /* 팝업 하단 바: 위치를 더 올리고 배경색 추가하여 가독성 확보 */
+        /* 팝업 하단 바: 배경 블러 원래대로 + 위치 상향 */
         #popup .bottom-bar {
             position: fixed; 
-            bottom: 40px; /* 바닥에서 띄움 (요청하신 상향 조정) */
+            bottom: 60px; /* 바닥에서 띄움 (원하시는 위치) */
             left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px;
-            background: rgba(0, 0, 0, 0.6); /* 반투명 검정 배경 */
-            backdrop-filter: blur(10px); /* 뒤쪽 이미지 블러 처리 */
-            padding: 15px 25px;
-            border-radius: 30px; /* 둥근 막대 형태 디자인 */
+            /* 원래 스타일: 화면 전체 너비에 걸친 그라데이션 블러 */
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 30%, transparent);
+            padding: 20px 30px 20px 30px; 
             z-index: 2100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         .popup-slider {
@@ -87,7 +90,7 @@
 
         @media (min-aspect-ratio: 9/16) {
             .slide-item img { width: auto; aspect-ratio: 9 / 16; }
-            #popup .bottom-bar { max-width: calc(100vh * 9 / 16 - 40px); }
+            #popup .bottom-bar { max-width: calc(100vh * 9 / 16); }
         }
     </style>
 </head>
